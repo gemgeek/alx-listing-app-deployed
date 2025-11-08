@@ -6,9 +6,11 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 export const getServerSideProps: GetServerSideProps<{
   properties: Property[];
   error: string | null;
-}> = async () => { 
+}> = async () => {
   try {
-    const host = process.env.VERCEL_URL ? `https://{process.env.VERCEL_URL}` : 'http://127.0.0.1:3000';
+    const host = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://127.0.0.1:3000';
     const apiUrl = `${host}/api/properties`;
 
     const response = await axios.get(apiUrl);
