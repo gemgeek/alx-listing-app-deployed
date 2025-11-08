@@ -1,18 +1,53 @@
-import { useRouter } from 'next/router';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
 import PropertyDetail from '@/components/property/PropertyDetail';
-import { Property } from '@/types'; 
+import ReviewSection from '@/components/property/ReviewSection';
+import { Property, Review } from '@/types';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
+export const getServerSideProps: GetServerSideProps<{
+  property: Property | null;
+  reviews: Review[];
+  error: string | null;
+}> = async (context) => {
+  try {
+    const { id } = context.params!;
+    const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://127.0.0.1:3000';
+    
+    const propertyApiUrl = `${host}/api/properties/${id}`;
+    const reviewsApiUrl = `${host}/api/properties/${id}/reviews`;
 
-function LoadingSpinner() {
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
-}
+    const [propertyResponse, reviewsResponse] = await Promise.all([
+      axios.get(propertyApiUrl),
+      axios.get(reviewsApiUrl)
+    ]);
 
+    return {
+      props: {
+        property: propertyResponse.data,
+        reviews: reviewsResponse.data,
+        error: null,
+      },
+    };
+  } catch (err: unknown) {
+    console.error(`Error in getServerSideProps ([id].tsx):`, err);
+    let message = 'Could not load property details.';
+    if (axios.isAxiosError(err)) {
+      message = err.response?.data?.message || err.message;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
+
+    return {
+      props: {
+        property: null,
+        reviews: [],
+        error: message,
+      },
+    };
+  }
+};
+
+// Error component
 function ErrorMessage({ message }: { message: string }) {
   return (
     <div className="flex justify-center items-center h-screen">
@@ -24,53 +59,27 @@ function ErrorMessage({ message }: { message: string }) {
   );
 }
 
-
-export default function PropertyDetailPage() {
-  const router = useRouter();
-  const { id } = router.query; 
-
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProperty = async () => {
-      if (!id) return; 
-      
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties/${id}`);
-        setProperty(response.data);
-      } catch (err: unknown) {
-        console.error('Error fetching property details:', err);
-        let message = 'Property not found';
-        if (axios.isAxiosError(err)) {
-          message = err.response?.data?.message || err.message;
-        } else if (err instanceof Error) {
-          message = err.message;
-        }
-        setError(message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperty();
-  }, [id]); 
-
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
+export default function PropertyDetailPage({
+  property,
+  reviews,
+  error,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  
   if (error) {
     return <ErrorMessage message={error} />;
   }
   
   if (!property) {
-     return <ErrorMessage message="Property not found" />;
+    return <ErrorMessage message="Property not found." />;
   }
 
-  return <PropertyDetail property={property} />;
+  return (
+    <div className="container mx-auto p-4 md:p-8">
+      <PropertyDetail property={property} />
+      <hr className="my-6 max-w-4xl mx-auto border-gray-200" />
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
+        <ReviewSection reviews={reviews} />
+      </div>
+    </div>
+  );
 }

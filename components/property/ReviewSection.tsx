@@ -1,9 +1,7 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
 import { Review } from '@/types'; 
 
 interface ReviewSectionProps {
-  propertyId: string;
+  reviews: Review[]; 
 }
 
 const StarRating = ({ rating }: { rating: number }) => (
@@ -14,56 +12,9 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
-export default function ReviewSection({ propertyId }: ReviewSectionProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ReviewSection({ reviews }: ReviewSectionProps) {
 
-  useEffect(() => {
-    if (!propertyId) return;
-
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties/${propertyId}/reviews`);
-        setReviews(response.data);
-      } catch (err: unknown) {
-        console.error('Error fetching reviews:', err);
-        let message = 'Could not load reviews.';
-        if (axios.isAxiosError(err)) {
-          message = err.response?.data?.message || err.message;
-        } else if (err instanceof Error) {
-          message = err.message;
-        }
-        setError(message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReviews();
-  }, [propertyId]); 
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Reviews</h2>
-        <p className="text-gray-500">Loading reviews...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 bg-red-50 rounded-lg">
-        <h2 className="text-2xl font-semibold text-red-700 mb-4">Reviews</h2>
-        <p className="text-red-600">Error: {error}</p>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">
