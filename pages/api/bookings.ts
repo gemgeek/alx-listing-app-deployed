@@ -43,7 +43,7 @@ export default function handler(
       });
     }, 1500); 
 
-  } catch (_error) {
+  } catch {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 }

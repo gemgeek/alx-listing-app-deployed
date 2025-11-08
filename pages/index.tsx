@@ -1,21 +1,41 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
-import { Property } from '@/types'; 
+import { Property } from '@/types';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-export async function getServerSideProps() {
-  return {
-    props: {}, 
-  };
-}
+export const getServerSideProps: GetServerSideProps<{
+  properties: Property[];
+  error: string | null;
+}> = async () => { 
+  try {
+    const host = process.env.VERCEL_URL ? `https://{process.env.VERCEL_URL}` : 'http://127.0.0.1:3000';
+    const apiUrl = `${host}/api/properties`;
 
-function LoadingSpinner() {
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
-}
+    const response = await axios.get(apiUrl);
+    
+    return {
+      props: {
+        properties: response.data,
+        error: null,
+      },
+    };
+  } catch (err: unknown) {
+    console.error('Error in getServerSideProps (index.tsx):', err);
+    let message = 'An unknown error occurred';
+    if (axios.isAxiosError(err)) {
+      message = err.response?.data?.message || err.message;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
+    
+    return {
+      props: {
+        properties: [],
+        error: message,
+      },
+    };
+  }
+};
 
 function ErrorMessage({ message }: { message: string }) {
   return (
@@ -28,40 +48,11 @@ function ErrorMessage({ message }: { message: string }) {
   );
 }
 
-export default function Home() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true); 
-        setError(null); 
-        
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties`);
-        setProperties(response.data);
-      } catch (err: unknown) {
-        console.error('Error fetching properties:', err);
-        let message = 'An unknown error occurred';
-        if (axios.isAxiosError(err)) {
-          message = err.response?.data?.message || err.message;
-        } else if (err instanceof Error) {
-          message = err.message;
-        }
-        setError(message);
-      } finally {
-        setLoading(false); 
-      }
-    };
-
-    fetchProperties();
-  }, []); 
-
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
+export default function Home({
+  properties,
+  error,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  
   if (error) {
     return <ErrorMessage message={error} />;
   }
