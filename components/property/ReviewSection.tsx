@@ -27,11 +27,17 @@ export default function ReviewSection({ propertyId }: ReviewSectionProps) {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(`/api/properties/${propertyId}/reviews`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties/${propertyId}/reviews`);
         setReviews(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching reviews:', err);
-        setError(err.message || 'Could not load reviews.');
+        let message = 'Could not load reviews.';
+        if (axios.isAxiosError(err)) {
+          message = err.response?.data?.message || err.message;
+        } else if (err instanceof Error) {
+          message = err.message;
+        }
+        setError(message);
       } finally {
         setLoading(false);
       }

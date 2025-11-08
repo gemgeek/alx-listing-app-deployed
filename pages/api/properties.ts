@@ -7,7 +7,7 @@ const properties: Property[] = [
     name: 'Cozy Beachfront Cottage',
     location: 'Malibu, California',
     price: 300,
-    imageUrl: 'https://placehold.co/600x400/007bff/white?text=Beach+Cottage',
+    imageUrl: 'https://placehold.co/600x400/007bff/white.png?text=Beach+Cottage',
     rating: 4.8,
   },
   {
@@ -15,7 +15,7 @@ const properties: Property[] = [
     name: 'Modern Downtown Loft',
     location: 'New York, New York',
     price: 250,
-    imageUrl: 'https://placehold.co/600x400/444/white?text=Downtown+Loft',
+    imageUrl: 'https://placehold.co/600x400/444/white.png?text=Downtown+Loft',
     rating: 4.5,
   },
   {
@@ -23,7 +23,7 @@ const properties: Property[] = [
     name: 'Rustic Mountain Cabin',
     location: 'Aspen, Colorado',
     price: 450,
-    imageUrl: 'https://placehold.co/600x400/28a745/white?text=Mountain+Cabin',
+    imageUrl: 'https://placehold.co/600x400/28a745/white.png?text=Mountain+Cabin',
     rating: 4.9,
   },
 ];

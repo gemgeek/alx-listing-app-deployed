@@ -49,15 +49,21 @@ export default function BookingForm() {
     }
 
     try {
-      const response = await axios.post('/api/bookings', formData);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bookings`, formData);
       setSuccess(`Booking confirmed! Your booking ID is: ${response.data.bookingId}`);
       setFormData({
         firstName: '', lastName: '', email: '', phoneNumber: '',
         cardNumber: '', expirationDate: '', cvv: '', billingAddress: '',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Booking failed:', err);
-      setError(err.response?.data?.message || 'Failed to submit booking. Please try again.');
+      let message = 'Failed to submit booking. Please try again.';
+      if (axios.isAxiosError(err)) {
+        message = err.response?.data?.message || err.message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }

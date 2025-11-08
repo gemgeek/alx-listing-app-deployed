@@ -41,11 +41,17 @@ export default function PropertyDetailPage() {
         setLoading(true);
         setError(null);
         
-        const response = await axios.get(`/api/properties/${id}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties/${id}`);
         setProperty(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching property details:', err);
-        setError(err.response?.data?.message || err.message || 'Property not found');
+        let message = 'Property not found';
+        if (axios.isAxiosError(err)) {
+          message = err.response?.data?.message || err.message;
+        } else if (err instanceof Error) {
+          message = err.message;
+        }
+        setError(message);
       } finally {
         setLoading(false);
       }

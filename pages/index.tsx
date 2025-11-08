@@ -3,6 +3,12 @@ import { useEffect, useState } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
 import { Property } from '@/types'; 
 
+export async function getServerSideProps() {
+  return {
+    props: {}, 
+  };
+}
+
 function LoadingSpinner() {
   return (
     <div className="flex justify-center items-center h-screen">
@@ -33,11 +39,17 @@ export default function Home() {
         setLoading(true); 
         setError(null); 
         
-        const response = await axios.get('/api/properties');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/properties`);
         setProperties(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching properties:', err);
-        setError(err.message || 'An unknown error occurred');
+        let message = 'An unknown error occurred';
+        if (axios.isAxiosError(err)) {
+          message = err.response?.data?.message || err.message;
+        } else if (err instanceof Error) {
+          message = err.message;
+        }
+        setError(message);
       } finally {
         setLoading(false); 
       }
